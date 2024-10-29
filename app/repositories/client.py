@@ -22,6 +22,7 @@ class ClientRepository:
             gender=client_data.gender,
             avatar=client_data.avatar_url
         )
+        new_client.set_password(client_data.password)
         self.session.add(new_client)
         await self.session.commit()
         await self.session.refresh(new_client)
