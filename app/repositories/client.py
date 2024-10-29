@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.client import Client
+from app.models.match import Match
 from app.schemas.client import ClientCreate
 
 
@@ -9,8 +10,13 @@ class ClientRepository:
         self.session = session
 
     async def get_by_email(self, email: str) -> Client | None:
-        """Проверка существования клиента с указанным email."""
+        """Возвращает клиента с указанным email."""
         result = await self.session.execute(select(Client).where(Client.email == email))
+        return result.scalars().first()
+
+    async def get_by_id(self, client_id: int) -> Client | None:
+        """Возвращает клиента с указанным email."""
+        result = await self.session.execute(select(Client).where(Client.id == client_id))
         return result.scalars().first()
 
     async def create_client(self, client_data: ClientCreate) -> Client:
@@ -27,3 +33,20 @@ class ClientRepository:
         await self.session.commit()
         await self.session.refresh(new_client)
         return new_client
+
+    async def check_mutual_match(self, client_id, target_client_id):
+        """
+        Проверяет, существует ли взаимная симпатия между текущим пользователем и target_client_id.
+        """
+        query = (select(Match).where(Match.client_id == target_client_id, Match.target_id == client_id))
+        result = await self.session.execute(query)
+        match = result.scalars().first()
+        return match is not None
+
+    async def add_match(self, current_user_id, target_client_id):
+        """
+        Добавляет симпатию от текущего пользователя к target_client_id.
+        """
+        new_match = Match(client_id=current_user_id, target_id=target_client_id)
+        self.session.add(new_match)
+        await self.session.commit()

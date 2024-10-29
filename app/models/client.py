@@ -3,7 +3,8 @@ from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 from enum import Enum as PyEnum
 from passlib.context import CryptContext
 
-Base = declarative_base()
+from app.db.base import Base
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
