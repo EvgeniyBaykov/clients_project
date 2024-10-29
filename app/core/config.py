@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DB_USER: str = ""
     DB_PASSWORD: str = ""
     DB_HOST: str = ""
+    PATH_TO_AVATAR_WATERMARK: str = ""
 
     @property
     def db_url(self):
