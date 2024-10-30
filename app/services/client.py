@@ -15,7 +15,9 @@ from app.services.send_email import send_email_to_user
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def create_client_f(request: Request, client_data: ClientCreate, session: AsyncSession):
+async def create_client_f(
+    request: Request, client_data: ClientCreate, session: AsyncSession
+):
     """
     Создает экземпляр репозитория для работы с клиентами, проверяет существование email,
     сохраняет аватар, если загружен, создаёт нового пользователя через репозиторий.
@@ -137,14 +139,15 @@ async def match_client_f(
 
     return {"message": "Симпатия отправлена"}
 
+
 async def get_clients_f(
     session: AsyncSession,
     current_user: Client,
     gender: str | None,
     first_name: str | None,
-    last_name: str | None ,
+    last_name: str | None,
     distance: float | None,
-    created_at: datetime | None
+    created_at: datetime | None,
 ):
     """
     Функция получает и возвращает отфильтрованный список пользователей
@@ -156,6 +159,6 @@ async def get_clients_f(
         first_name=first_name,
         last_name=last_name,
         distance=distance,
-        created_at=created_at
+        created_at=created_at,
     )
     return clients

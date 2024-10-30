@@ -1,8 +1,7 @@
-from sqlalchemy import DateTime
 from enum import Enum as PyEnum
 
 from passlib.context import CryptContext
-from sqlalchemy import Enum
+from sqlalchemy import DateTime, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 

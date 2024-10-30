@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Sequence
 
+from aiocache import Cache, cached
+from aiocache.serializers import PickleSerializer
 from fastapi import HTTPException, Request
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +11,7 @@ from sqlalchemy.future import select
 from app.models.client import Client
 from app.models.match import Match
 from app.schemas.client import ClientCreate
-from app.utils import calculate_distance, get_location
+from app.utils import calculate_distance, get_location, my_key_builder
 
 
 class ClientRepository:
@@ -28,6 +30,14 @@ class ClientRepository:
         )
         return result.scalars().first()
 
+    @cached(
+        ttl=60,
+        cache=Cache.REDIS,
+        key_builder=my_key_builder,
+        serializer=PickleSerializer(),
+        port=6379,
+        namespace="main",
+    )
     async def get_clients(
         self,
         current_user: Client,
@@ -35,7 +45,7 @@ class ClientRepository:
         first_name: str | None = None,
         last_name: str | None = None,
         distance: float | None = None,
-        created_at: datetime | None = None
+        created_at: datetime | None = None,
     ) -> Sequence[Client]:
         query = select(Client)
 
@@ -58,16 +68,27 @@ class ClientRepository:
 
         if distance:
             if not current_user.latitude or not current_user.longitude:
-                raise HTTPException(status_code=400, detail="Координаты текущего пользователя не установлены.")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Координаты текущего пользователя не установлены.",
+                )
             clients = [
-                client for client in clients
-                if calculate_distance(current_user.latitude, current_user.longitude,
-                                client.latitude, client.longitude) <= distance
+                client
+                for client in clients
+                if calculate_distance(
+                    current_user.latitude,
+                    current_user.longitude,
+                    client.latitude,
+                    client.longitude,
+                )
+                <= distance
             ]
 
         return clients
 
-    async def create_client(self, request: Request, client_data: ClientCreate) -> Client:
+    async def create_client(
+        self, request: Request, client_data: ClientCreate
+    ) -> Client:
         """Создание нового клиента и сохранение в базе данных."""
         new_client = Client(
             first_name=client_data.first_name,

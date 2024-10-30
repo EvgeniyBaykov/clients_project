@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Sequence
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, Request, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,14 +10,21 @@ from app.db.session import get_session
 from app.schemas.auth import Token, UserAuth
 from app.schemas.client import Client, ClientCreate
 from app.services.auth import auth_user_f
-from app.services.client import create_client_f, get_current_user, match_client_f, get_clients_f
+from app.services.client import (
+    create_client_f,
+    get_clients_f,
+    get_current_user,
+    match_client_f,
+)
 
 router = APIRouter()
 
 
 @router.post("/api/clients/create", response_model=Client, status_code=201)
 async def create_client(
-    request: Request, client_data: ClientCreate, session: AsyncSession = Depends(get_session)
+    request: Request,
+    client_data: ClientCreate,
+    session: AsyncSession = Depends(get_session),
 ):
     """Endpoint для регистрации пользователя"""
     return await create_client_f(request, client_data, session)
@@ -33,9 +40,8 @@ async def auth_user(
 
 
 @router.post("/api/clients/logout/")
-async def logout_user(response: Response):
+async def logout_user():
     """Endpoint для выхода пользователя"""
-    response.delete_cookie(key="access_token")
     return {'message': 'Пользователь успешно вышел из системы'}
 
 
@@ -56,7 +62,10 @@ async def match_client(
         target_client_id, background_tasks, current_user, session
     )
 
-@router.get("/api/list", response_model=Sequence[Client])
+
+@router.get(
+    "/api/list", response_model=Sequence[Client], dependencies=[Depends(HTTPBearer())]
+)
 async def get_clients(
     session: AsyncSession = Depends(get_session),
     current_user: Client = Depends(get_current_user),
@@ -64,7 +73,9 @@ async def get_clients(
     first_name: str | None = Query(None, description="Фильтр по имени"),
     last_name: str | None = Query(None, description="Фильтр по фамилии"),
     distance: float | None = Query(None, description="Фильтр по расстоянию (км)"),
-    created_at: datetime | None = Query(None, description="Фильтр по дате регистрации")
+    created_at: datetime | None = Query(None, description="Фильтр по дате регистрации"),
 ):
     """Endpoint для получения списка участников"""
-    return await get_clients_f(session, current_user, gender, first_name, last_name, distance, created_at)
+    return await get_clients_f(
+        session, current_user, gender, first_name, last_name, distance, created_at
+    )
