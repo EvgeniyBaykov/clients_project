@@ -50,3 +50,13 @@ aiosmtplib==2.0.2
 blinker==1.8.2
 fastapi_mail==1.4.1
 pyjwt==2.9.0
+black==24.10.0
+flake8==7.1.1
+isort==5.13.2
+mccabe==0.7.0
+mypy-extensions==1.0.0
+packaging==24.1
+pathspec==0.12.1
+platformdirs==4.3.6
+pycodestyle==2.12.1
+pyflakes==3.2.0

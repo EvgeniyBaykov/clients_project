@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from app.api.endpoints import client, storage
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.endpoints import client, storage
 
 app = FastAPI()
 

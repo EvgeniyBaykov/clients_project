@@ -1,7 +1,10 @@
+from sqlalchemy import DateTime
+from enum import Enum as PyEnum
+
+from passlib.context import CryptContext
 from sqlalchemy import Enum
 from sqlalchemy.orm import Mapped, mapped_column
-from enum import Enum as PyEnum
-from passlib.context import CryptContext
+from sqlalchemy.sql import func
 
 from app.db.base import Base
 
@@ -15,6 +18,7 @@ class GenderEnum(PyEnum):
 
 class Client(Base):
     """Модель описывающая пользователя"""
+
     __tablename__ = "clients"
 
     id: Mapped[int] = mapped_column(primary_key=True)

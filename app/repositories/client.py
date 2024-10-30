@@ -1,5 +1,9 @@
+from typing import Sequence
+
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
 from app.models.client import Client
 from app.models.match import Match
 from app.schemas.client import ClientCreate
@@ -16,8 +20,33 @@ class ClientRepository:
 
     async def get_by_id(self, client_id: int) -> Client | None:
         """Возвращает клиента с указанным email."""
-        result = await self.session.execute(select(Client).where(Client.id == client_id))
+        result = await self.session.execute(
+            select(Client).where(Client.id == client_id)
+        )
         return result.scalars().first()
+
+    async def get_clients(
+        self,
+        gender: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+    ) -> Sequence[Client]:
+        query = select(Client)
+
+        conditions = []
+
+        if gender:
+            conditions.append(Client.gender == gender)
+        if first_name:
+            conditions.append(Client.first_name.ilike(f"%{first_name}%"))
+        if last_name:
+            conditions.append(Client.last_name.ilike(f"%{last_name}%"))
+
+        if conditions:
+            query = query.where(and_(*conditions))
+
+        result = await self.session.execute(query)
+        return result.scalars().all()
 
     async def create_client(self, client_data: ClientCreate) -> Client:
         """Создание нового клиента и сохранение в базе данных."""
@@ -26,7 +55,7 @@ class ClientRepository:
             last_name=client_data.last_name,
             email=client_data.email,
             gender=client_data.gender,
-            avatar=client_data.avatar_url
+            avatar=client_data.avatar_url,
         )
         new_client.set_password(client_data.password)
         self.session.add(new_client)
@@ -38,7 +67,9 @@ class ClientRepository:
         """
         Проверяет, существует ли взаимная симпатия между текущим пользователем и target_client_id.
         """
-        query = (select(Match).where(Match.client_id == target_client_id, Match.target_id == client_id))
+        query = select(Match).where(
+            Match.client_id == target_client_id, Match.target_id == client_id
+        )
         result = await self.session.execute(query)
         match = result.scalars().first()
         return match is not None
@@ -56,7 +87,9 @@ class ClientRepository:
         Возвращает список оценок пользователя других пользователей
         за определенный промежуток времени
         """
-        stmt = select(Match).filter(Match.client_id == current_user.id, Match.created_at >= since_time)
+        stmt = select(Match).filter(
+            Match.client_id == current_user.id, Match.created_at >= since_time
+        )
         result = await self.session.execute(stmt)
         ratings = result.scalars().all()
         return ratings

@@ -6,6 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Класс настроек приложения"""
+
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str

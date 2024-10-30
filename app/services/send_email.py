@@ -1,5 +1,6 @@
 from fastapi import BackgroundTasks
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+
 from app.core.config import settings
 
 conf = ConnectionConfig(
@@ -10,14 +11,16 @@ conf = ConnectionConfig(
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
     USE_CREDENTIALS=settings.USE_CREDENTIALS,
-    VALIDATE_CERTS=settings.VALIDATE_CERTS
+    VALIDATE_CERTS=settings.VALIDATE_CERTS,
 )
 
 
-async def send_email_to_user(background_tasks: BackgroundTasks,
-                             user_name:str,
-                             user_email: str,
-                             target_user_email: str):
+async def send_email_to_user(
+    background_tasks: BackgroundTasks,
+    user_name: str,
+    user_email: str,
+    target_user_email: str,
+):
     """Функция для отправки письма пользователю"""
     message_text = f"Вы понравились {user_name}! Почта участника: {user_email}"
     message = MessageSchema(

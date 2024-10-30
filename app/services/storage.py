@@ -1,9 +1,11 @@
-import aiofiles
 import io
 import os
 import uuid
+
+import aiofiles
 from fastapi import UploadFile
 from PIL import Image
+
 from app.core.config import settings
 
 UPLOAD_DIRECTORY = "uploads/avatars"
@@ -15,8 +17,13 @@ async def add_watermark(avatar_path: str, watermark_path: str, output_path: str)
     avatar = Image.open(avatar_path).convert("RGBA")
     watermark = Image.open(watermark_path).convert("RGBA")
 
-    watermark = watermark.resize((avatar.width // 5, avatar.height // 5), Image.Resampling.LANCZOS)
-    watermark_position = (avatar.width - watermark.width - 10, avatar.height - watermark.height - 10)
+    watermark = watermark.resize(
+        (avatar.width // 5, avatar.height // 5), Image.Resampling.LANCZOS
+    )
+    watermark_position = (
+        avatar.width - watermark.width - 10,
+        avatar.height - watermark.height - 10,
+    )
 
     combined = Image.new("RGBA", avatar.size)
     combined.paste(avatar, (0, 0))
@@ -42,7 +49,9 @@ async def save_avatar_image(avatar: UploadFile) -> str:
     avatar_name: str = f"{uuid.uuid4()}.{avatar_extension}"
     avatar_name_with_watermark: str = f"water_{avatar_name}"
     avatar_path: str = os.path.join(UPLOAD_DIRECTORY, avatar_name)
-    avatar_path_with_watermark: str = os.path.join(UPLOAD_DIRECTORY, avatar_name_with_watermark)
+    avatar_path_with_watermark: str = os.path.join(
+        UPLOAD_DIRECTORY, avatar_name_with_watermark
+    )
 
     os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
@@ -52,5 +61,7 @@ async def save_avatar_image(avatar: UploadFile) -> str:
 
     watermark_path = settings.PATH_TO_AVATAR_WATERMARK
 
-    file_with_watermark_path = await add_watermark(avatar_path, watermark_path, avatar_path_with_watermark)
+    file_with_watermark_path = await add_watermark(
+        avatar_path, watermark_path, avatar_path_with_watermark
+    )
     return file_with_watermark_path
