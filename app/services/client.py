@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import Depends, HTTPException, Request, status, BackgroundTasks
-from jose import jwt, JWTError
+from jose import jwt
+import jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
@@ -34,19 +35,38 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_token(request: Request):
-    """Получает токен JWT из куки"""
-    token = request.cookies.get('access_token')
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token not found')
-    return token
 
+    """
+    Декодирует JWT токен из заголовка Authorization.
+    """
+    auth_header = request.headers.get('authorization')
 
-async def get_current_user(session: AsyncSession = Depends(get_session), token: str = Depends(get_token)):
-    """Функция возвращает текущего пользователя"""
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный формат токена",
+        )
+
+    token = auth_header[len("Bearer "):]
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Токен не валидный!')
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Токен истек",
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Невалидный токен",
+        )
+
+
+async def get_current_user(request: Request, session: AsyncSession = Depends(get_session)):
+    """Функция возвращает текущего пользователя"""
+    payload = get_token(request)
 
     expire = payload.get('exp')
     expire_time = datetime.fromtimestamp(int(expire), tz=timezone.utc)
@@ -67,8 +87,8 @@ async def get_current_user(session: AsyncSession = Depends(get_session), token: 
 
 async def match_client_f(target_client_id: int,
                          background_tasks: BackgroundTasks,
-                         current_user: Client = Depends(get_current_user),
-                         session: AsyncSession = Depends(get_session)
+                         current_user: Client,
+                         session: AsyncSession
                          ):
     """
     Функция проверяет, существует ли целевой пользователь, создаёт запись об оценке,

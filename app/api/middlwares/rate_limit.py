@@ -8,15 +8,11 @@ from app.core.config import settings
 from app.services.client import get_current_user
 
 
-async def rate_limit_middleware(session: AsyncSession = Depends(get_session),
-                                current_user: Client = Depends(get_current_user)):
+async def rate_limit(current_user: Client = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     """
-    Middleware проверяет авторизован ли пользователь, вызывает функцию для проверки количества оценок
-    за определенный промежуток времени, если оценок больше заданного количества, выбрасывает ошибку
+    Вызывает функцию для проверки количества оценок за определенный промежуток времени,
+    если оценок больше заданного количества, выбрасывает ошибку
     """
-
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Необходима авторизация")
 
     twenty_four_hours_ago = datetime.now() - timedelta(days=1)
     client_repo = ClientRepository(session)
