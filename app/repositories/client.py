@@ -50,3 +50,13 @@ class ClientRepository:
         new_match = Match(client_id=current_user_id, target_id=target_client_id)
         self.session.add(new_match)
         await self.session.commit()
+
+    async def get_ratings_by_client(self, current_user, since_time):
+        """
+        Возвращает список оценок пользователя других пользователей
+        за определенный промежуток времени
+        """
+        stmt = select(Match).filter(Match.client_id == current_user.id, Match.created_at >= since_time)
+        result = await self.session.execute(stmt)
+        ratings = result.scalars().all()
+        return ratings

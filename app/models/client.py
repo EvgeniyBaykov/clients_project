@@ -1,5 +1,5 @@
 from sqlalchemy import Enum
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from enum import Enum as PyEnum
 from passlib.context import CryptContext
 

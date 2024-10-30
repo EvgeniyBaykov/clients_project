@@ -28,6 +28,9 @@ async def authenticate_user(session: AsyncSession, email: EmailStr, password: st
 
 
 async def auth_user_f(response: Response, user_data: UserAuth, session: AsyncSession):
+    """
+    Авторизует пользователя, добавляет токен JWT в куки
+    """
     user = await authenticate_user(session=session, email=user_data.email, password=user_data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

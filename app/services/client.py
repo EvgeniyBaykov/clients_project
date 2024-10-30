@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status, BackgroundTasks
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import get_session
 from app.repositories.client import ClientRepository
-from app.schemas.client import ClientCreate
+from app.schemas.client import ClientCreate, Client
+from app.services.send_email import send_email_to_user
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,6 +34,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_token(request: Request):
+    """Получает токен JWT из куки"""
     token = request.cookies.get('access_token')
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Token not found')
@@ -63,5 +65,37 @@ async def get_current_user(session: AsyncSession = Depends(get_session), token: 
     return user
 
 
-async def match_client_f():
-    pass
+async def match_client_f(target_client_id: int,
+                         background_tasks: BackgroundTasks,
+                         current_user: Client = Depends(get_current_user),
+                         session: AsyncSession = Depends(get_session)
+                         ):
+    """
+    Функция проверяет, существует ли целевой пользователь, создаёт запись об оценке,
+    проверяет есть ли взаимная симпатия, если да, то отправляет email обоим пользователям об этом
+    """
+    client_repo = ClientRepository(session)
+    target_client = await client_repo.get_by_id(target_client_id)
+    if not target_client:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Участник не найден")
+
+    has_mutual_match = await client_repo.check_mutual_match(current_user.id, target_client_id)
+    await client_repo.add_match(current_user.id, target_client_id)
+
+    if has_mutual_match:
+        await send_email_to_user(
+            background_tasks,
+            user_name=current_user.first_name,
+            user_email=current_user.email,
+            target_user_email=target_client.email,
+        )
+        await send_email_to_user(
+            background_tasks,
+            user_name=target_client.first_name,
+            user_email=target_client.email,
+            target_user_email=current_user.email,
+        )
+
+        return {"message": f"Взаимная симпатия с {target_client.first_name}! Почта: {target_client.email}"}
+
+    return {"message": "Симпатия отправлена"}
