@@ -27,7 +27,9 @@ class Client(Base):
     first_name: Mapped[str] = mapped_column(index=True, nullable=False)
     last_name: Mapped[str] = mapped_column(index=True, nullable=False)
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(nullable=True, default='')
+    hashed_password: Mapped[str] = mapped_column(nullable=True)
+    latitude: Mapped[float] = mapped_column(nullable=True)
+    longitude: Mapped[float] = mapped_column(nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -35,3 +37,11 @@ class Client(Base):
     def set_password(self, password: str):
         """Функция хэширует полученный пароль и устанавливает пользователю"""
         self.hashed_password = pwd_context.hash(password)
+
+    def set_latitude(self, latitude: float):
+        """Функция устанавливает значение широты"""
+        self.latitude = latitude
+
+    def set_longitude(self, longitude: float):
+        """Функция устанавливает значение долготы"""
+        self.longitude = longitude

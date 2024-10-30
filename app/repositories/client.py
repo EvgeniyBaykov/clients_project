@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Sequence
 
+from fastapi import HTTPException, Request
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -8,6 +9,7 @@ from sqlalchemy.future import select
 from app.models.client import Client
 from app.models.match import Match
 from app.schemas.client import ClientCreate
+from app.utils import calculate_distance, get_location
 
 
 class ClientRepository:
@@ -28,9 +30,11 @@ class ClientRepository:
 
     async def get_clients(
         self,
+        current_user: Client,
         gender: str | None = None,
         first_name: str | None = None,
         last_name: str | None = None,
+        distance: float | None = None,
         created_at: datetime | None = None
     ) -> Sequence[Client]:
         query = select(Client)
@@ -50,9 +54,20 @@ class ClientRepository:
             query = query.where(and_(*conditions))
 
         result = await self.session.execute(query)
-        return result.scalars().all()
+        clients = result.scalars().all()
 
-    async def create_client(self, client_data: ClientCreate) -> Client:
+        if distance:
+            if not current_user.latitude or not current_user.longitude:
+                raise HTTPException(status_code=400, detail="Координаты текущего пользователя не установлены.")
+            clients = [
+                client for client in clients
+                if calculate_distance(current_user.latitude, current_user.longitude,
+                                client.latitude, client.longitude) <= distance
+            ]
+
+        return clients
+
+    async def create_client(self, request: Request, client_data: ClientCreate) -> Client:
         """Создание нового клиента и сохранение в базе данных."""
         new_client = Client(
             first_name=client_data.first_name,
@@ -61,6 +76,11 @@ class ClientRepository:
             gender=client_data.gender,
             avatar=client_data.avatar_url,
         )
+        client_ip = self.get_client_ip(request)
+        location = await get_location(client_ip)
+        new_client.set_latitude(location[0])
+        new_client.set_longitude(location[1])
+
         new_client.set_password(client_data.password)
         self.session.add(new_client)
         await self.session.commit()
@@ -97,3 +117,15 @@ class ClientRepository:
         result = await self.session.execute(stmt)
         ratings = result.scalars().all()
         return ratings
+
+    @classmethod
+    def get_client_ip(cls, request: Request) -> str:
+        """
+        Функция получает ip из заголовков и возвращает, если localhost, то возвращает случайный ip
+        """
+        x_forwarded_for = request.headers.get("X-Forwarded-For")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = "89.113.154.158"
+        return ip

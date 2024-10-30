@@ -60,3 +60,8 @@ pathspec==0.12.1
 platformdirs==4.3.6
 pycodestyle==2.12.1
 pyflakes==3.2.0
+geographiclib==2.0
+geopy==2.4.1
+charset-normalizer==3.4.0
+requests==2.32.3
+urllib3==2.2.3

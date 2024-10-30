@@ -24,12 +24,14 @@ class ClientCreate(BaseModel):
 
 class Client(BaseModel):
     id: int
-    avatar: str = None
+    avatar: str | None = None
     gender: GenderEnum
     first_name: str
     last_name: str
     email: EmailStr
     created_at: datetime
+    latitude: float | None = None
+    longitude: float | None = None
 
     class Config:
         from_attributes = True

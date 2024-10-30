@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Sequence
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, Request, Query
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,20 +17,19 @@ router = APIRouter()
 
 @router.post("/api/clients/create", response_model=Client, status_code=201)
 async def create_client(
-    client_data: ClientCreate, session: AsyncSession = Depends(get_session)
+    request: Request, client_data: ClientCreate, session: AsyncSession = Depends(get_session)
 ):
     """Endpoint для регистрации пользователя"""
-    return await create_client_f(client_data, session)
+    return await create_client_f(request, client_data, session)
 
 
 @router.post("/api/clients/login/", response_model=Token)
 async def auth_user(
-    response: Response,
     user_data: UserAuth,
     session: AsyncSession = Depends(get_session),
 ):
     """Endpoint для авторизации пользователя"""
-    return await auth_user_f(response, user_data, session)
+    return await auth_user_f(user_data, session)
 
 
 @router.post("/api/clients/logout/")
@@ -60,10 +59,12 @@ async def match_client(
 @router.get("/api/list", response_model=Sequence[Client])
 async def get_clients(
     session: AsyncSession = Depends(get_session),
+    current_user: Client = Depends(get_current_user),
     gender: str | None = Query(None, description="Фильтр по полу"),
     first_name: str | None = Query(None, description="Фильтр по имени"),
     last_name: str | None = Query(None, description="Фильтр по фамилии"),
+    distance: float | None = Query(None, description="Фильтр по расстоянию (км)"),
     created_at: datetime | None = Query(None, description="Фильтр по дате регистрации")
 ):
     """Endpoint для получения списка участников"""
-    return await get_clients_f(session, gender, first_name, last_name, created_at)
+    return await get_clients_f(session, current_user, gender, first_name, last_name, distance, created_at)
