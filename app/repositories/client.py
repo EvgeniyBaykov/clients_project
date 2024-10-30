@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Sequence
 
 from sqlalchemy import and_
@@ -30,6 +31,7 @@ class ClientRepository:
         gender: str | None = None,
         first_name: str | None = None,
         last_name: str | None = None,
+        created_at: datetime | None = None
     ) -> Sequence[Client]:
         query = select(Client)
 
@@ -41,6 +43,8 @@ class ClientRepository:
             conditions.append(Client.first_name.ilike(f"%{first_name}%"))
         if last_name:
             conditions.append(Client.last_name.ilike(f"%{last_name}%"))
+        if created_at:
+            conditions.append((Client.created_at.ilike(f"%{created_at}%")))
 
         if conditions:
             query = query.where(and_(*conditions))

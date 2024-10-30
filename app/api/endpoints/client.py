@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Sequence
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Response, Query
@@ -62,6 +63,7 @@ async def get_clients(
     gender: str | None = Query(None, description="Фильтр по полу"),
     first_name: str | None = Query(None, description="Фильтр по имени"),
     last_name: str | None = Query(None, description="Фильтр по фамилии"),
+    created_at: datetime | None = Query(None, description="Фильтр по дате регистрации")
 ):
     """Endpoint для получения списка участников"""
-    return await get_clients_f(session, gender, first_name, last_name)
+    return await get_clients_f(session, gender, first_name, last_name, created_at)

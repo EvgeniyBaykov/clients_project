@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 
 from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr
@@ -28,6 +29,7 @@ class Client(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
+    created_at: datetime
 
     class Config:
         from_attributes = True

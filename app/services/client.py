@@ -4,6 +4,7 @@ import jwt
 from fastapi import BackgroundTasks, Depends, HTTPException, Request, status
 from jose import jwt
 from passlib.context import CryptContext
+from sqlalchemy import DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -139,14 +140,16 @@ async def match_client_f(
 
 async def get_clients_f(
     session: AsyncSession,
-    gender: str | None = None,
-    first_name: str | None = None,
-    last_name: str | None = None,
+    gender: str | None,
+    first_name: str | None,
+    last_name: str | None ,
+    created_at: datetime | None
 ):
     client_repo = ClientRepository(session)
     clients = await client_repo.get_clients(
         gender=gender,
         first_name=first_name,
-        last_name=last_name
+        last_name=last_name,
+        created_at=created_at
     )
     return clients
