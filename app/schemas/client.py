@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from fastapi import UploadFile
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class GenderEnum(str, Enum):
@@ -20,6 +20,7 @@ class ClientCreate(BaseModel):
 
     class Config:
         from_attributes = True
+        config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Client(BaseModel):
@@ -35,6 +36,7 @@ class Client(BaseModel):
 
     class Config:
         from_attributes = True
+        config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class AvatarUpload(BaseModel):

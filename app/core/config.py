@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool
     VALIDATE_CERTS: bool
     RATINGS_PER_DAY: int
+    REFRESH_SECRET_KEY: str
+    REFRESH_TOKEN_EXPIRE_MINUTES: int
 
     @property
     def db_url(self):

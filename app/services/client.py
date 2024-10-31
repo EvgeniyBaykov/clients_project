@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Sequence
 
 import jwt
 from fastapi import BackgroundTasks, Depends, HTTPException, Request, status
@@ -17,7 +18,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 async def create_client_f(
     request: Request, client_data: ClientCreate, session: AsyncSession
-):
+) -> Client:
     """
     Создает экземпляр репозитория для работы с клиентами, проверяет существование email,
     сохраняет аватар, если загружен, создаёт нового пользователя через репозиторий.
@@ -37,7 +38,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_token(request: Request):
+def get_token(request: Request) -> dict:
     """
     Декодирует JWT токен из заголовка Authorization.
     """
@@ -70,7 +71,7 @@ def get_token(request: Request):
 
 async def get_current_user(
     request: Request, session: AsyncSession = Depends(get_session)
-):
+) -> Client:
     """Функция возвращает текущего пользователя"""
     payload = get_token(request)
 
@@ -102,7 +103,7 @@ async def match_client_f(
     background_tasks: BackgroundTasks,
     current_user: Client,
     session: AsyncSession,
-):
+) -> dict:
     """
     Функция проверяет, существует ли целевой пользователь, создаёт запись об оценке,
     проверяет есть ли взаимная симпатия, если да, то отправляет email обоим пользователям об этом
@@ -148,7 +149,7 @@ async def get_clients_f(
     last_name: str | None,
     distance: float | None,
     created_at: datetime | None,
-):
+) -> Sequence[Client]:
     """
     Функция получает и возвращает отфильтрованный список пользователей
     """

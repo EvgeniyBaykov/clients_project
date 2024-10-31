@@ -13,7 +13,7 @@ from app.services.client import get_current_user
 async def rate_limit(
     current_user: Client = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-):
+) -> None:
     """
     Вызывает функцию для проверки количества оценок за определенный промежуток времени,
     если оценок больше заданного количества, выбрасывает ошибку

@@ -2,7 +2,7 @@ import httpx
 from geopy.distance import great_circle
 
 
-def calculate_distance(lat1, lon1, lat2, lon2) -> float:
+def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Вычисляет расстояние в километрах между двумя точками на земном шаре."""
     return great_circle((lat1, lon1), (lat2, lon2)).km
 
@@ -22,7 +22,7 @@ async def get_location(client_ip: str) -> tuple:
         return None, None
 
 
-def my_key_builder(func, *args, **kwargs):
+def my_key_builder(func, *args, **kwargs) -> str:
     """Создаем динамический ключ на основе имени функции и её аргументов"""
     key_parts = (
         [func.__module__, func.__name__]

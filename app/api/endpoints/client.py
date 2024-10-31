@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Sequence
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +9,7 @@ from app.api.middlwares.rate_limit import rate_limit
 from app.db.session import get_session
 from app.schemas.auth import Token, UserAuth
 from app.schemas.client import Client, ClientCreate
-from app.services.auth import auth_user_f
+from app.services.auth import auth_user_f, refresh_access_token
 from app.services.client import (
     create_client_f,
     get_clients_f,
@@ -79,3 +79,10 @@ async def get_clients(
     return await get_clients_f(
         session, current_user, gender, first_name, last_name, distance, created_at
     )
+
+@router.post("/api/token/refresh")
+def refresh_token_endpoint(refresh_token: str):
+    """
+    Эндпоинт для обновления access токена с использованием refresh токена.
+    """
+    return refresh_access_token(refresh_token)

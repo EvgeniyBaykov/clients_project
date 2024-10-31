@@ -20,7 +20,7 @@ async def send_email_to_user(
     user_name: str,
     user_email: str,
     target_user_email: str,
-):
+) -> None:
     """Функция для отправки письма пользователю"""
     message_text = f"Вы понравились {user_name}! Почта участника: {user_email}"
     message = MessageSchema(

@@ -47,6 +47,8 @@ class ClientRepository:
         distance: float | None = None,
         created_at: datetime | None = None,
     ) -> Sequence[Client]:
+        """Возвращает список клиентов с учетом фильтров"""
+
         query = select(Client)
 
         conditions = []
@@ -108,7 +110,7 @@ class ClientRepository:
         await self.session.refresh(new_client)
         return new_client
 
-    async def check_mutual_match(self, client_id, target_client_id):
+    async def check_mutual_match(self, client_id: int, target_client_id: int) -> Match | None:
         """
         Проверяет, существует ли взаимная симпатия между текущим пользователем и target_client_id.
         """
@@ -119,7 +121,7 @@ class ClientRepository:
         match = result.scalars().first()
         return match is not None
 
-    async def add_match(self, current_user_id, target_client_id):
+    async def add_match(self, current_user_id: int, target_client_id: int) -> None:
         """
         Добавляет симпатию от текущего пользователя к target_client_id.
         """
@@ -127,7 +129,7 @@ class ClientRepository:
         self.session.add(new_match)
         await self.session.commit()
 
-    async def get_ratings_by_client(self, current_user, since_time):
+    async def get_ratings_by_client(self, current_user: Client, since_time: datetime) -> Sequence[Match]:
         """
         Возвращает список оценок пользователя других пользователей
         за определенный промежуток времени
