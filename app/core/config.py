@@ -7,10 +7,10 @@ load_dotenv()
 class Settings(BaseSettings):
     """Класс настроек приложения"""
 
-    DB_NAME: str
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_HOST: str
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
     PATH_TO_AVATAR_WATERMARK: str
     SECRET_KEY: str
     ALGORITHM: str
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     @property
     def db_url(self):
         """Функция возвращает адрес БД"""
-        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}'
+        return f'postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:5432/{self.POSTGRES_DB}'
 
     class Config:
         env_file = ".env"
